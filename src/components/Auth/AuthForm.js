@@ -1,8 +1,10 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useContext } from "react";
 
 import classes from "./AuthForm.module.css";
+import AuthContext from "../../store/auth-context";
 
 const AuthForm = () => {
+  const authCtx = useContext(AuthContext);
   const [isLoading, setIsLoading] = useState(false);
   const [isLogin, setIsLogin] = useState(true);
   const emailRef = useRef("");
@@ -33,6 +35,19 @@ const AuthForm = () => {
           },
         }
       );
+      if (response.ok) {
+        //
+        const data = await response.json();
+        const jwtToken = data.idToken;
+        authCtx.login(jwtToken);
+      } else {
+        const data = await response.json();
+        let errorMessage = "Authentication Failed";
+        if (data && data.error && data.error.message) {
+          errorMessage = data.error.message;
+        }
+        alert(errorMessage);
+      }
     } else {
       response = await fetch(
         `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${process.env.REACT_APP_FIREBASE_APIKEY}`,
@@ -48,20 +63,18 @@ const AuthForm = () => {
           },
         }
       );
+      if (response.ok) {
+        //
+      } else {
+        const data = await response.json();
+        let errorMessage = "Authentication Failed";
+        if (data && data.error && data.error.message) {
+          errorMessage = data.error.message;
+        }
+        alert(errorMessage);
+      }
     }
     setIsLoading(false);
-    if (response.ok) {
-      const data = await response.json();
-      const jwtToken = data.idToken;
-      console.log(jwtToken);
-    } else {
-      const data = await response.json();
-      let errorMessage = "Authentication Failed";
-      if (data && data.error && data.error.message) {
-        errorMessage = data.error.message;
-      }
-      alert(errorMessage);
-    }
   };
 
   return (
