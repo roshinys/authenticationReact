@@ -15,34 +15,53 @@ const AuthForm = () => {
   const submitHandler = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+    const email = emailRef.current.value;
+    const password = passwordRef.current.value;
+    let response;
     if (isLogin) {
-    } else {
-      const email = emailRef.current.value;
-      const password = passwordRef.current.value;
-      console.log(email, password);
-      const response = await fetch(process.env.REACT_APP_FIREBASE_URL, {
-        method: "POST",
-        body: JSON.stringify({
-          email: email,
-          password: password,
-          returnSecureToken: true,
-        }),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      if (response.ok) {
-        //
-      } else {
-        const data = await response.json();
-        let errorMessage = "Authentication Failed";
-        if (data && data.error && data.error.message) {
-          errorMessage = data.error.message;
+      response = await fetch(
+        `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${process.env.REACT_APP_FIREBASE_APIKEY}`,
+        {
+          method: "POST",
+          body: JSON.stringify({
+            email: email,
+            password: password,
+            returnSecureToken: true,
+          }),
+          headers: {
+            "Content-Type": "application/json",
+          },
         }
-        alert(errorMessage);
-      }
+      );
+    } else {
+      response = await fetch(
+        `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${process.env.REACT_APP_FIREBASE_APIKEY}`,
+        {
+          method: "POST",
+          body: JSON.stringify({
+            email: email,
+            password: password,
+            returnSecureToken: true,
+          }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
     }
     setIsLoading(false);
+    if (response.ok) {
+      const data = await response.json();
+      const jwtToken = data.idToken;
+      console.log(jwtToken);
+    } else {
+      const data = await response.json();
+      let errorMessage = "Authentication Failed";
+      if (data && data.error && data.error.message) {
+        errorMessage = data.error.message;
+      }
+      alert(errorMessage);
+    }
   };
 
   return (
